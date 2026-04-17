@@ -1,3 +1,4 @@
+console.log("JS LOADED");
 const crmLeadEndpoint = "https://3092a01d-31a6-46a0-a092-11aa63948adc.neodove.com/integration/custom/7998e1da-c784-42b5-8967-02aa22f0447d/leads";
 
 function scrollToTarget(selector) {
