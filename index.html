@@ -53,7 +53,7 @@
             <label>Full Name<input type="text" name="name" placeholder="Enter your name" autocomplete="name" required></label>
             <label>Mobile Number<input type="tel" name="phone" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" required></label>
             <label>Email Address<input type="email" name="email" placeholder="Enter your email" autocomplete="email" required></label>
-            <button type="submit" class="form-btn">Submit & Get Free Counseling</button>
+            <form class="lead-form" id="mainForm">
                        <p class="form-message" aria-live="polite"></p>
           </form>
         </aside>
@@ -354,28 +354,67 @@
     <button data-scroll="#lead-form-top">Apply Now</button>
   </div>
 
-  <div class="modal-backdrop" id="lead-modal" aria-hidden="true">
-    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button class="modal-close" type="button" aria-label="Close popup">&times;</button>
-      <p class="form-kicker modal-kicker">Free Counseling</p>
-      <h2 id="modal-title">Still Confused About Online MBA Admission?</h2>
-      <p class="modal-copy">Get a free shortlist of 200+ university options, fees, eligibility, EMI, and MBA without entrance exam choices. Submit your details and our counselor will reach out.</p>
-      <div class="modal-hooks" aria-label="Counseling benefits">
-        <span>Free eligibility check</span>
-        <span>Budget-wise university match</span>
-        <span>No entrance options</span>
-      </div>
-      <form class="lead-form modal-form" data-source="Interest Popup Form">
-        <label>Full Name<input type="text" name="name" placeholder="Enter your name" autocomplete="name" required></label>
-        <label>Mobile Number<input type="tel" name="phone" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" required></label>
-        <label>Email Address<input type="email" name="email" placeholder="Enter your email" autocomplete="email" required></label>
-        <label>Preferred MBA Type<select name="program"><option>Online MBA</option><option>Distance MBA</option><option>MBA without entrance exam</option><option>Not sure, need counseling</option></select></label>
-        <input type="hidden" name="university" value="">
-        <button type="submit" class="form-btn">Submit & Get Free Counseling</button>
-        <p class="form-message" aria-live="polite"></p>
-      </form>
+ <div class="modal-backdrop" id="lead-modal" aria-hidden="true">
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+    <button class="modal-close" type="button" aria-label="Close popup">&times;</button>
+
+    <p class="form-kicker modal-kicker">Free Counseling</p>
+    <h2 id="modal-title">Still Confused About Online MBA Admission?</h2>
+
+    <p class="modal-copy">
+      Get a free shortlist of 200+ university options, fees, eligibility, EMI, and MBA without entrance exam choices.
+      Submit your details and our counselor will reach out.
+    </p>
+
+    <div class="modal-hooks">
+      <span>Free eligibility check</span>
+      <span>Budget-wise university match</span>
+      <span>No entrance options</span>
     </div>
+
+    <!-- ✅ SINGLE FORM ONLY -->
+    <form class="lead-form modal-form" data-source="Interest Popup Form">
+
+      <label>
+        Full Name
+        <input type="text" name="name" placeholder="Enter your name" required>
+      </label>
+
+      <label>
+        Mobile Number
+        <input type="tel" name="phone" placeholder="10-digit mobile number" required>
+      </label>
+
+      <label>
+        Email Address
+        <input type="email" name="email" placeholder="Enter your email" required>
+      </label>
+
+      <label>
+        Preferred MBA Type
+        <select name="program">
+          <option>Online MBA</option>
+          <option>Distance MBA</option>
+          <option>MBA without entrance exam</option>
+          <option>Not sure, need counseling</option>
+        </select>
+      </label>
+
+      <input type="hidden" name="university" value="">
+
+      <!-- ✅ FIXED BUTTON -->
+      <button type="submit" class="form-btn">
+        Submit & Get Free Counseling
+      </button>
+
+      <!-- ✅ MESSAGE -->
+      <p class="form-message"></p>
+
+    </form>
+
   </div>
+</div>
 
   <script src="script.js" defer></script>
 </body>
