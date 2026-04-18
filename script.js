@@ -1,13 +1,13 @@
-console.log("JS LOADED");
+console.log("JS LOADED ✅");
+
+/* =========================
+   CRM ENDPOINT
+========================= */
 const crmLeadEndpoint = "https://3092a01d-31a6-46a0-a092-11aa63948adc.neodove.com/integration/custom/7998e1da-c784-42b5-8967-02aa22f0447d/leads";
 
-function scrollToTarget(selector) {
-  const target = document.querySelector(selector);
-  if (target) {
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-}
-
+/* =========================
+   HELPERS
+========================= */
 function normalizePhone(phone) {
   return phone.replace(/\D/g, "").replace(/^91/, "");
 }
@@ -16,237 +16,102 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+/* =========================
+   SEND LEAD TO CRM
+========================= */
 async function sendLeadToCrm(lead) {
+
   const payload = {
     name: lead.name,
-    mobile: Number(lead.phone),
+    mobile: lead.phone, // ⚠️ number मत बना, string ही रख
     email: lead.email,
-    detail1: lead.source || "Landing Page Form",
-    detail2: [
-      `Lead ID: ${lead.id}`,
-      lead.program && `Program: ${lead.program}`,
-      lead.university && `Interest: ${lead.university}`,
-      lead.qualification && `Qualification: ${lead.qualification}`,
-      `Submitted: ${lead.submittedAt}`,
-      "Website: onlinembaadmission.com"
-    ].filter(Boolean).join(" | ")
+    detail1: lead.source || "Landing Page",
+    detail2: `Program: ${lead.program || ""} | University: ${lead.university || ""} | Time: ${lead.submittedAt}`
   };
 
-  const response = await fetch(crmLeadEndpoint, {
-    method: "POST",
-    mode: "cors",
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
+  console.log("📤 Sending to CRM:", payload);
 
-  const responseText = await response.text();
-  console.info("CRM response:", response.status, responseText);
+  try {
+    const response = await fetch(crmLeadEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-  if (!response.ok) {
-    throw new Error(`CRM request failed with status ${response.status}: ${responseText}`);
-  }
+    const text = await response.text();
+    console.log("✅ CRM RESPONSE:", response.status, text);
 
-  return responseText;
-}
-
-const modal = document.querySelector("#lead-modal");
-const modalForm = modal ? modal.querySelector(".modal-form") : null;
-const modalClose = modal ? modal.querySelector(".modal-close") : null;
-
-/* =========================
-   OPEN / CLOSE MODAL
-========================= */
-
-function openLeadModal(university = "", source = "CTA Popup Form") {
-  if (!modal) return;
-
-  if (modalForm) {
-    modalForm.dataset.source = source;
-    const universityInput = modalForm.querySelector('input[name="university"]');
-    if (universityInput) {
-      universityInput.value = university;
-    }
-  }
-
-  modal.classList.add("is-open");
-  modal.setAttribute("aria-hidden", "false");
-  document.body.classList.add("modal-open");
-
-  const firstInput = modal.querySelector('input[name="name"]');
-  if (firstInput) {
-    setTimeout(() => firstInput.focus(), 80);
-  }
-}
-
-function closeLeadModal() {
-  if (!modal) return;
-  modal.classList.remove("is-open");
-  modal.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("modal-open");
-}
-
-/* =========================
-   INTRO POPUP (ONCE)
-========================= */
-
-window.addEventListener("load", function () {
-  if (!localStorage.getItem("introPopupShown")) {
-    setTimeout(() => {
-      openLeadModal("", "Intro Popup Form");
-      localStorage.setItem("introPopupShown", "true");
-    }, 3000); // 3 sec delay
-  }
-});
-
-/* =========================
-   EXIT INTENT POPUP (ONCE)
-========================= */
-
-document.addEventListener("mouseout", function (e) {
-  if (e.clientY < 10) {
-    if (!localStorage.getItem("exitPopupShown")) {
-      openLeadModal("", "Exit Intent Popup");
-      localStorage.setItem("exitPopupShown", "true");
-    }
-  }
-});
-
-/* =========================
-   CTA BUTTON HANDLING
-========================= */
-
-document.querySelectorAll("[data-scroll]").forEach((trigger) => {
-  trigger.addEventListener("click", (event) => {
-    event.preventDefault();
-
-    const university = trigger.dataset.university;
-    if (university) {
-      document.querySelectorAll('input[name="university"]').forEach((input) => {
-        input.value = university;
-      });
+    if (!response.ok) {
+      throw new Error("CRM failed");
     }
 
-    openLeadModal(university || "", "CTA Popup Form");
-  });
-});
+    return true;
 
-/* =========================
-   CLOSE EVENTS
-========================= */
-
-if (modalClose) {
-  modalClose.addEventListener("click", closeLeadModal);
-}
-
-if (modal) {
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      closeLeadModal();
-    }
-  });
-}
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    closeLeadModal();
+  } catch (error) {
+    console.error("❌ CRM ERROR:", error);
+    throw error;
   }
-});
+}
 
 /* =========================
-   FORM SUBMIT
+   FORM HANDLING
 ========================= */
 
-document.querySelectorAll(".lead-form").forEach((form) => {
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
+document.querySelectorAll("form").forEach((form) => {
 
-    const message = form.querySelector(".form-message");
-    const submitButton = form.querySelector('button[type="submit"]');
-    const formData = new FormData(form);
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-    const name = String(formData.get("name") || "").trim();
-    const phone = normalizePhone(String(formData.get("phone") || ""));
-    const email = String(formData.get("email") || "").trim();
-    const program = String(formData.get("program") || "").trim();
-    const university = String(formData.get("university") || "").trim();
-    const qualification = String(formData.get("qualification") || "").trim();
-    const source = form.dataset.source || "Landing Page Form";
+    console.log("FORM TRIGGERED ✅");
 
-    message.className = "form-message";
+    const name = form.querySelector('[name="name"]')?.value.trim();
+    const phone = normalizePhone(form.querySelector('[name="phone"]')?.value || "");
+    const email = form.querySelector('[name="email"]')?.value.trim();
+    const program = form.querySelector('[name="program"]')?.value || "";
+    const university = form.querySelector('[name="university"]')?.value || "";
 
-    if (name.length < 2) {
-      message.textContent = "Please enter your full name.";
-      message.classList.add("error");
+    if (!name || name.length < 2) {
+      alert("Enter valid name");
       return;
     }
 
     if (!/^[6-9]\d{9}$/.test(phone)) {
-      message.textContent = "Please enter a valid 10-digit Indian mobile number.";
-      message.classList.add("error");
+      alert("Enter valid phone");
       return;
     }
 
     if (!isValidEmail(email)) {
-      message.textContent = "Please enter a valid email address.";
-      message.classList.add("error");
+      alert("Enter valid email");
       return;
     }
 
     const lead = {
-      id: `MBA-${Date.now()}`,
-      source,
       name,
       phone,
       email,
       program,
       university,
-      qualification,
+      source: "Website",
       submittedAt: new Date().toISOString()
     };
 
-    const existingLeads = JSON.parse(localStorage.getItem("onlineMbaLeads") || "[]");
-    existingLeads.push(lead);
-    localStorage.setItem("onlineMbaLeads", JSON.stringify(existingLeads));
-
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent = "Submitting...";
-    }
-
-    message.textContent = "Thank you. Submitting your details...";
-    message.classList.add("success");
-
     try {
       await sendLeadToCrm(lead);
-      message.textContent = "Thank you. Your details have been submitted. Our counselor will contact you soon.";
+
+      alert("✅ Submitted Successfully!");
+
+      /* 🔥 WhatsApp Redirect */
+      window.location.href = `https://wa.me/91XXXXXXXXXX?text=Hi, I am interested in MBA. Name: ${name}, Phone: ${phone}`;
+
+      form.reset();
+
     } catch (error) {
-      console.error("CRM lead submission failed:", error);
-      message.textContent = "Sorry, submission failed. Please try again in a moment.";
-      message.classList.remove("success");
-      message.classList.add("error");
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = submitButton.dataset.defaultText || "Submit";
-      }
-      return;
-    }
 
-    form.reset();
+      alert("⚠️ Submission failed. Try again.");
 
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.textContent = submitButton.dataset.defaultText || submitButton.textContent.replace("Submitting...", "Submit");
-    }
-
-    if (form.classList.contains("modal-form")) {
-      setTimeout(closeLeadModal, 800);
     }
   });
-});
 
-document.querySelectorAll('.lead-form button[type="submit"]').forEach((button) => {
-  button.dataset.defaultText = button.textContent;
 });
